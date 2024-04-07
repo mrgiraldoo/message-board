@@ -23,11 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
+import os
+from dotenv import load_dotenv
+env_path = load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(env_path)
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-_paeu3_xlr3qjy13r2pkst4e=tfn5rd$p#y)g2tx2_41j+x2ul"
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-_paeu3_xlr3qjy13r2pkst4e=tfn5rd$p#y)g2tx2_41j+x2ul')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = False
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
 ALLOWED_HOSTS = ["*"]
 
@@ -80,8 +85,14 @@ WSGI_APPLICATION = "django_project.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     "default": env.dj_db_url("DATABASE_URL", default="sqlite:///db.sqlite3"),
+# }
 DATABASES = {
-    "default": env.dj_db_url("DATABASE_URL", default="sqlite:///db.sqlite3"),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "mydatabase",
+    }
 }
 
 
@@ -119,7 +130,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STORAGES = {
     "default" : {
@@ -136,3 +147,12 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CSRF_TRUSTED_ORIGINS =["https://*.fly.dev"]
+
+
+import dj_database_url
+
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
+        com_max_age=500,
+        com_health_checks=True,
+    )
